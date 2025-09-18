@@ -1,37 +1,38 @@
 <?php
-header('Content-Type: application/json');
+// visits.php - single JSON file tracks everything
+$file = 'visits.json';
 
-// File to store visit data
-$file = 'visit_data.json';
-
-// Load existing data or initialize
-if (file_exists($file)) {
-    $data = json_decode(file_get_contents($file), true);
-} else {
+// Create the file if it doesn't exist
+if(!file_exists($file)){
     $data = [
         'total' => 0,
         'today' => 0,
         'yesterday' => 0,
         'last_date' => date('Y-m-d')
     ];
+    file_put_contents($file, json_encode($data));
 }
 
-// Check if date changed
-$today = date('Y-m-d');
-if ($data['last_date'] !== $today) {
+// Read current data
+$data = json_decode(file_get_contents($file), true);
+
+// Update counters
+$today_date = date('Y-m-d');
+if($data['last_date'] != $today_date){
+    // Yesterday = previous today, reset today
     $data['yesterday'] = $data['today'];
     $data['today'] = 0;
-    $data['last_date'] = $today;
+    $data['last_date'] = $today_date;
 }
 
-// Increment today's and total visits
-$data['today'] += 1;
-$data['total'] += 1;
+$data['today']++;
+$data['total']++;
 
-// Save back to file
+// Save updated data
 file_put_contents($file, json_encode($data));
 
-// Return JSON data
+// Return JSON for front-end
+header('Content-Type: application/json');
 echo json_encode([
     'yesterday' => $data['yesterday'],
     'today' => $data['today'],
